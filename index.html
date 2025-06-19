@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>Truyền File & Ký Số</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col items-center px-4 py-6">
+
+  <h1 class="text-3xl md:text-4xl font-bold mb-8 text-center">🔐 Ứng dụng Truyền File & Ký Số</h1>
+
+  <form action="/" method="POST" enctype="multipart/form-data"
+        class="bg-white dark:bg-gray-800 shadow-xl rounded-2xl p-6 md:p-8 w-full max-w-xl space-y-5">
+    <div>
+      <label class="block text-sm font-medium mb-1">📁 Chọn file:</label>
+      <input type="file" name="file" required
+             class="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring focus:border-blue-500 text-sm">
+    </div>
+
+    <button type="submit" onclick="showLoading()"
+            class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-lg shadow-md transition">
+      🚀 Ký & Mã hóa
+    </button>
+
+    <div id="loading" class="hidden text-center text-blue-500 font-medium">⏳ Đang xử lý...</div>
+  </form>
+
+  {% if encrypted_file %}
+  <div class="mt-6 w-full max-w-xl bg-green-100 dark:bg-green-800 text-green-900 dark:text-green-100 rounded-xl p-4 shadow-md">
+    <p class="mb-2 font-semibold">✅ File đã ký & mã hóa:</p>
+    <a href="{{ url_for('download_file', filename=encrypted_file) }}"
+       class="text-blue-600 dark:text-blue-300 hover:underline break-all">
+      {{ encrypted_file }}
+    </a>
+  </div>
+  {% endif %}
+
+  {% if history %}
+  <h2 class="mt-10 mb-4 text-2xl font-semibold">🕓 Lịch sử File Đã Ký & Mã Hóa</h2>
+  <div class="overflow-x-auto w-full max-w-6xl">
+    <table class="min-w-full bg-white dark:bg-gray-800 rounded-xl shadow-md text-sm table-auto">
+      <thead>
+        <tr class="bg-gradient-to-r from-blue-600 to-blue-500 text-white">
+          <th class="px-5 py-3 text-left">Tên gốc</th>
+          <th class="px-5 py-3 text-left">File mã hóa</th>
+          <th class="px-5 py-3 text-left">Thời gian</th>
+          <th class="px-5 py-3 text-left">Chữ ký số</th>
+        </tr>
+      </thead>
+      <tbody class="text-gray-800 dark:text-gray-100">
+        {% for entry in history|reverse %}
+        <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+          <td class="px-5 py-3 break-words font-medium">{{ entry.filename }}</td>
+          <td class="px-5 py-3 break-words">{{ entry.encrypted_filename }}</td>
+          <td class="px-5 py-3 whitespace-nowrap">{{ entry.timestamp }}</td>
+          <td class="px-5 py-3 max-w-xs">
+            <div class="flex items-center gap-2">
+              <span title="{{ entry.signature }}" class="truncate block max-w-[180px]">{{ entry.signature[:40] }}...</span>
+              <button onclick="copyText(`{{ entry.signature }}`)"
+                      class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs focus:outline-none">
+                📋
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="mt-10 text-center text-gray-500 dark:text-gray-400 text-sm italic">Chưa có file nào được ký và mã hóa.</div>
+  {% endif %}
+
+  <script>
+    function copyText(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        alert("✅ Đã sao chép chữ ký số!");
+      }).catch(err => {
+        alert("❌ Sao chép thất bại!");
+      });
+    }
+
+    function showLoading() {
+      document.getElementById("loading").classList.remove("hidden");
+    }
+  </script>
+
+</body>
+</html>
